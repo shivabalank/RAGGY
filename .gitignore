@@ -1,0 +1,37 @@
+# ---- Secrets: never commit ----
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*serviceAccount*.json
+*firebase-adminsdk*.json
+
+# ---- Python ----
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+
+# ---- Local data created by the backend ----
+backend/storage/
+backend/qdrant_data/
+backend/*.db
+
+# ---- Node ----
+node_modules/
+dist/
+dist-preview/
+.vercel
+
+# ---- Hugging Face / model caches ----
+.cache/
+huggingface/
+
+# ---- OS / editor ----
+.DS_Store
+Thumbs.db
+.idea/
+*.log

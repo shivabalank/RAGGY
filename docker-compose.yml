@@ -1,0 +1,60 @@
+# Local development services:   docker compose up -d
+# Starts PostgreSQL (app data) and Qdrant (vector search). The backend itself runs on your machine
+# with `uvicorn` (it needs your GPU/Python env). To ALSO run the backend in Docker:
+#   docker compose --profile backend up -d --build
+#
+# The passwords below are for LOCAL DEVELOPMENT ONLY and the ports are bound to 127.0.0.1.
+# Use strong, different credentials (and a managed database) in production.
+services:
+  postgres:
+    image: postgres:16
+    container_name: raggy-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: raggy
+      POSTGRES_PASSWORD: raggy
+      POSTGRES_DB: raggy
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - raggy_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U raggy -d raggy"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: raggy-qdrant
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6333:6333"
+    volumes:
+      - raggy_qdrant:/qdrant/storage
+
+  backend:
+    profiles: ["backend"]
+    build: ./backend
+    container_name: raggy-backend
+    restart: unless-stopped
+    env_file: ./backend/.env
+    environment:  # override the localhost addresses from .env with the Docker service names
+      DATABASE_URL: postgresql+psycopg://raggy:raggy@postgres:5432/raggy
+      QDRANT_URL: http://qdrant:6333
+    depends_on:
+      postgres:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+    ports:
+      - "8000:8000"
+    volumes:
+      - raggy_files:/app/storage          # uploaded files when STORAGE_BACKEND=local
+      - raggy_hfcache:/root/.cache/huggingface  # model downloads survive restarts
+
+volumes:
+  raggy_pgdata:
+  raggy_qdrant:
+  raggy_files:
+  raggy_hfcache:

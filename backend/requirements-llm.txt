@@ -1,0 +1,5 @@
+# ONLY needed if the LLM runs inside this backend (LLM_PROVIDER=local) or on a GPU box via llm_server.py.
+# Requires an NVIDIA GPU. Install the CUDA build of PyTorch FIRST (see README, "Local Llama").
+transformers>=4.44
+accelerate>=0.33
+bitsandbytes>=0.43
